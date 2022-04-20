@@ -1,0 +1,48 @@
+@startuml
+'https://plantuml.com/class-diagram
+class Game{}
+abstract class AbstractAircraft
+{
+	# axHp:int
+    # hp:int
+    - shootNum:int
+    - power:int
+    - direction:int
+    + AbstractAircraft(int locationX, int locationY, int speedX, int speedY, int hp)
+    + decreaseHp(int decrease):void
+    + getHp():int
+    +  ShootStrategy(Strategy strategy):List<BaseBullet>
+ }
+
+interface Strategy
+{
+    + doShootOperation(AbstractAircraft aircraft);List<BaseBullet>
+}
+class OperationHeroShootStraight
+{
+    + doShootOperation(AbstractAircraft aircraft):List<BaseBullet>
+}
+class OprationBossShootSpread
+{
+    + doShootOperation(AbstractAircraft aircraft):List<BaseBullet>
+}
+
+class OprationEliteShootStraight
+{
+    + doShootOperation(AbstractAircraft aircraft):List<BaseBullet>
+}
+class OprationHeroShootSpread
+{
+     + doShootOperation(AbstractAircraft aircraft):List<BaseBullet>
+}
+Game <|-- AbstractAircraft
+Strategy <|.. OperationHeroShootStraight
+Strategy <|.. OprationBossShootSpread
+Strategy <|.. OprationEliteShootStraight
+Strategy <|.. OprationHeroShootSpread
+
+AbstractAircraft --|> OperationHeroShootStraight:使用
+AbstractAircraft --|> OprationBossShootSpread:使用
+AbstractAircraft --|> OprationEliteShootStraight:使用
+AbstractAircraft --|> OprationHeroShootSpread:使用
+@enduml

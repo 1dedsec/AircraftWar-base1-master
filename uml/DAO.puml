@@ -1,0 +1,36 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+
+interface DAO{
+    + getAll():List<PlayerGrade>
+    + getFromName(String name):void
+    + update(PlayerGrade pg):void
+    + deleteFromName(String name):void
+}
+
+class PlayerDaoImpl {
+    - List<PlayerGrade> playersGrade
+    + PlayerDaoImpl()
+    + getAll():List<PlayerGrade>
+    + getFromName(String name):void
+    + update(PlayerGrade pg):void
+    + deleteFromName(String name):void
+    + show():void
+}
+class PlayerGrade {
+    - int ranking
+    - String name
+    - int score
+    - int time
+    + PlayerGrade(String name,int ranking,int score,int time)
+    + String getName()
+    + setName(String name):void
+    + getScore():int
+    + setScore(int score):void
+    + toString():String
+}
+
+DAO <|.. PlayerDaoImpl
+PlayerGrade <-- PlayerDaoImpl
+@enduml
