@@ -1,6 +1,8 @@
 package edu.hitsz.data;
 
-public class PlayerGrade {
+import java.io.Serializable;
+
+public class PlayerGrade implements Serializable{
     private int ranking;
     private String name;
     private int score;
@@ -30,6 +32,14 @@ public class PlayerGrade {
 
     public int getRanking() {
         return ranking;
+    }
+
+    public String getTime() {
+        float realTime=(float)(time)/1000;
+        int hours=(int)(realTime/3600);
+        int seconds=(int)(realTime%60);
+        int minutes=(int)((realTime-hours*3600)/60);
+        return hours+":"+minutes+":"+seconds;
     }
 
     @Override

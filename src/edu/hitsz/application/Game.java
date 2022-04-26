@@ -55,9 +55,11 @@ public class Game extends JPanel {
     private boolean gameOverFlag = false;
     private int score = 0;
     private int time = 0;
-    private Strategy heroStrategy;
+    public static Strategy heroStrategy;
     private Strategy eliteStrategy;
     private Strategy bossStrategy;
+    private Image backGroundImage;
+    private MusicThread bossBgmThread;
     /**
      * 周期（ms)
      * 指示子弹的发射、敌机的产生频率
@@ -82,6 +84,21 @@ public class Game extends JPanel {
         eliteStrategy=new OprationEliteShootStraight();
         bossStrategy=new OprationBossShootSpread();
         playersDao = new PlayerDaoImpl();
+        switch (Main.MODE){
+            case 0:
+                {backGroundImage=ImageManager.BACKGROUND_IMAGE_EASY;
+                    break;
+                }
+            case 1:
+                {backGroundImage=ImageManager.BACKGROUND_IMAGE_NORMAL;
+                    break;
+                }
+            case 2:
+                {backGroundImage=ImageManager.BACKGROUND_IMAGE_HARD;
+                    break;
+                }
+            default:backGroundImage=ImageManager.BACKGROUND_IMAGE_NORMAL;
+        }
     }
     /**
      * 游戏启动入口，执行游戏逻辑
@@ -100,6 +117,7 @@ public class Game extends JPanel {
                 if(bossAircraft.size()<1){
                     aircraftFactory=new BossFactory();
                     bossAircraft.add(aircraftFactory.createEnemyAircraft());
+                    setBossBgm();
                 }
                 bossScoreThreshold+=1000;
             }
@@ -143,13 +161,13 @@ public class Game extends JPanel {
             // 游戏结束检查
             if (heroAircraft.getHp() <= 0) {
                 // 游戏结束
-                PlayerGrade pg =new PlayerGrade("您",playersDao.getAll().size()+1,this.score,this.time);
-                playersDao.update(pg);
                 playersDao.show();
                 executorService.shutdown();
                 gameOverFlag = true;
                 System.out.println("Game Over!");
-
+                synchronized (Main.object) {
+                    Main.object.notify();
+                }
             }
         };
 
@@ -158,9 +176,6 @@ public class Game extends JPanel {
          * 本次任务执行完成后，需要延迟设定的延迟时间，才会执行新的任务
          */
         executorService.scheduleWithFixedDelay(task, timeInterval, timeInterval, TimeUnit.MILLISECONDS);
-        if(gameOverFlag){
-
-        }
         return true;
     }
 
@@ -246,6 +261,7 @@ public class Game extends JPanel {
                 if (enemyAircraft.crash(bullet)) {
                     // 敌机撞击到英雄机子弹
                     // 敌机损失一定生命值
+                    new MusicThread("src/videos/bullet_hit.wav").start();
                     enemyAircraft.decreaseHp(bullet.getPower());
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
@@ -296,6 +312,7 @@ public class Game extends JPanel {
                     bullet.vanish();
                     if (enemyAircraft.notValid()) {
                         // TODO 获得分数，产生道具补给
+                        removeBossBgm(bossBgmThread);
                         score += 200;
                         //添加道具掉落
                         int seed = random.nextInt(10);
@@ -328,7 +345,8 @@ public class Game extends JPanel {
             }
             else if(heroAircraft.crash(abstractProp)){
                 if(abstractProp instanceof BulletProp){
-                    heroStrategy=new OprationHeroShootSpread();
+                    new BulletThread().start();
+                    new MusicThread("src/videos/bullet.wav").start();
                 }
                 else{
                     abstractProp.PropActive();
@@ -371,8 +389,8 @@ public class Game extends JPanel {
         super.paint(g);
 
         // 绘制背景,图片滚动
-        g.drawImage(ImageManager.BACKGROUND_IMAGE, 0, this.backGroundTop - Main.WINDOW_HEIGHT, null);
-        g.drawImage(ImageManager.BACKGROUND_IMAGE, 0, this.backGroundTop, null);
+        g.drawImage(backGroundImage, 0, this.backGroundTop - Main.WINDOW_HEIGHT, null);
+        g.drawImage(backGroundImage, 0, this.backGroundTop, null);
         this.backGroundTop += 1;
         if (this.backGroundTop == Main.WINDOW_HEIGHT) {
             this.backGroundTop = 0;
@@ -418,5 +436,26 @@ public class Game extends JPanel {
         g.drawString("LIFE:" + this.heroAircraft.getHp(), x, y);
     }
 
+    public int getScore() {
+        return score;
+    }
 
+    public PlayerDaoImpl getPlayersDao() {
+        return playersDao;
+    }
+
+    public int getTime() {
+        return time;
+    }
+    public boolean getGameOverFlag(){return gameOverFlag;}
+    public void setBossBgm(){
+        Main.getBgmThread().setPauseFlag(true);
+        bossBgmThread=new MusicThread("src/videos/bgm_boss.wav");
+        bossBgmThread.start();
+    }
+    public void removeBossBgm(MusicThread bossBgmThread){
+        bossBgmThread.setPauseFlag(true);
+        bossBgmThread.setEndFlag(true);
+        Main.getBgmThread().setPauseFlag(false);
+    }
 }

@@ -1,24 +1,15 @@
 package edu.hitsz.data;
 
-import java.io.File;
+import edu.hitsz.application.Main;
+
+import java.io.*;
 import java.util.*;
-import java.io.BufferedWriter;
-
-import java.io.FileWriter;
-
-import java.io.IOException;
 
 public class PlayerDaoImpl implements DAO{
-    private List<PlayerGrade> playersGrade;
+    private LinkedList<PlayerGrade> playersGrade;
     public PlayerDaoImpl(){
         playersGrade =new LinkedList<PlayerGrade>();
-        playersGrade.add(new PlayerGrade("得分王小子",1,30000,135640));
-        playersGrade.add(new PlayerGrade("惹晒",2,29999,364300));
-        playersGrade.add(new PlayerGrade("菜鸡",3,2400,104000));
-        playersGrade.add(new PlayerGrade("369",4,0,664300));
-        playersGrade.add(new PlayerGrade("clearlove",7,4396,752350));
-        playersGrade.add(new PlayerGrade("xiaohu",5,2200,192387));
-        playersGrade.add(new PlayerGrade("喻文波",9,48231,835471));
+        playersGrade=readFromFile();
     }
     @Override
     public List<PlayerGrade> getAll() {
@@ -101,4 +92,55 @@ public class PlayerDaoImpl implements DAO{
             e.printStackTrace();
         }
     }
+    public static void writeToFile(LinkedList<PlayerGrade> playersGrade){
+        File file;
+        if(Main.MODE==0) {
+            file = new File("src/edu/hitsz/easy.txt");
+        }
+        else if (Main.MODE==1){
+            file = new File("src/edu/hitsz/normal.txt");
+        }
+        else {
+            file = new File("src/edu/hitsz/hard.txt");
+        }
+        int n=0;
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(file))) {
+            PlayerGrade[] obj=new PlayerGrade[playersGrade.size()];
+            for(PlayerGrade playerGrade:playersGrade){
+                obj[n++]=playerGrade;
+            }
+            out.writeObject(obj);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public static LinkedList<PlayerGrade> readFromFile(){
+        File file;
+        if(Main.MODE==0) {
+            file = new File("src/edu/hitsz/easy.txt");
+        }
+        else if (Main.MODE==1){
+            file = new File("src/edu/hitsz/normal.txt");
+        }
+        else {
+            file = new File("src/edu/hitsz/hard.txt");
+        }
+        LinkedList<PlayerGrade>playersGrade =new LinkedList<>();
+        try (ObjectInputStream out = new ObjectInputStream(new FileInputStream(file)))
+        {
+            PlayerGrade[] obj = (PlayerGrade[])out.readObject();
+            for(PlayerGrade playerGrade:obj) {
+                playersGrade.add(playerGrade);
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return playersGrade;
+    }
 }
+
